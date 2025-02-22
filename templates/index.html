@@ -61,6 +61,23 @@
         .chat-header {
             padding: 20px;
             border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-history-button {
+            padding: 8px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .clear-history-button:hover {
+            background: #c82333;
         }
 
         .messages-container {
@@ -159,6 +176,7 @@
         <div class="main-chat">
             <div class="chat-header">
                 <h2>Chat Room</h2>
+                <button class="clear-history-button" id="clear-history-button">Clear History</button>
             </div>
             <div class="messages-container" id="messages"></div>
             <div class="typing-indicator" id="typing-indicator"></div>
@@ -177,6 +195,7 @@
         const userList = document.getElementById('user-list');
         const typingIndicator = document.getElementById('typing-indicator');
         const usernameInput = document.getElementById('username-input');
+        const clearHistoryButton = document.getElementById('clear-history-button');
 
         let typingTimeout;
         let isNearBottom = true;
@@ -235,6 +254,11 @@
             messagesContainer.innerHTML = '';
             // Add all history messages
             messages.forEach(message => addMessage(message));
+        });
+
+        socket.on('history_cleared', () => {
+            messagesContainer.innerHTML = '';
+            addSystemMessage('Chat history has been cleared');
         });
 
         function addUserToList(user) {
@@ -317,6 +341,12 @@
 
         usernameInput.addEventListener('change', () => {
             socket.emit('update_username', { username: usernameInput.value });
+        });
+
+        clearHistoryButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear the chat history?')) {
+                socket.emit('clear_history');
+            }
         });
 
         messagesContainer.addEventListener('scroll', checkNearBottom);

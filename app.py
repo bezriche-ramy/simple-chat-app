@@ -78,5 +78,11 @@ def handle_update_username(data):
             "avatar_url": user["avatar_url"]
         }, broadcast=True)
 
+@socketio.on("clear_history")
+def handle_clear_history():
+    global message_history
+    message_history = []
+    emit("history_cleared", broadcast=True)
+
 if __name__ == '__main__':
     socketio.run(app)
