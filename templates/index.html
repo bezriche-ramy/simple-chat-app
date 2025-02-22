@@ -241,10 +241,6 @@
     <div class="chat-container">
         <div class="sidebar" id="sidebar">
             <button class="close-sidebar" id="close-sidebar">×</button>
-            <div class="username-container">
-                <h3>Your Username</h3>
-                <input type="text" id="username-input" class="username-input" placeholder="Change username">
-            </div>
             <h3>Online Users</h3>
             <ul class="user-list" id="user-list"></ul>
         </div>
@@ -270,7 +266,6 @@
         const sendButton = document.getElementById('send-button');
         const userList = document.getElementById('user-list');
         const typingIndicator = document.getElementById('typing-indicator');
-        const usernameInput = document.getElementById('username-input');
         const clearHistoryButton = document.getElementById('clear-history-button');
 
         let typingTimeout;
@@ -305,17 +300,6 @@
             typingTimeout = setTimeout(() => {
                 typingIndicator.textContent = '';
             }, 1000);
-        });
-
-        socket.on('username_changed', (data) => {
-            // Update user in the online users list
-            const userElement = document.querySelector(`[data-username="${data.old_username}"]`);
-            if (userElement) {
-                userElement.setAttribute('data-username', data.new_username);
-                userElement.querySelector('span').textContent = data.new_username;
-            }
-            // Add system message about username change
-            addSystemMessage(`${data.old_username} changed their name to ${data.new_username}`);
         });
 
         socket.on('initialize_users', (users) => {
@@ -413,10 +397,6 @@
             if (messageInput.value.trim()) {
                 sendMessage();
             }
-        });
-
-        usernameInput.addEventListener('change', () => {
-            socket.emit('update_username', { username: usernameInput.value });
         });
 
         clearHistoryButton.addEventListener('click', () => {

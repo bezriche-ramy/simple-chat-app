@@ -1,8 +1,9 @@
-from flask import Flask,render_template,request
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_socketio import SocketIO, emit
 import random
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key'  # Add this line for session support
 socketio = SocketIO(app)
 
 # Store for users and messages
@@ -11,16 +12,43 @@ message_history = []  # Store recent messages
 MAX_MESSAGES = 50  # Maximum number of messages to store
 
 @app.route('/')
-def index():
+def login():
+    if 'username' in session:
+        return redirect(url_for('chat'))
+    return render_template('login.html')
+
+@app.route('/join', methods=['POST'])
+def join():
+    username = request.form.get('username', '').strip()
+    gender = request.form.get('gender', 'boy')
+    
+    if len(username) < 3 or len(username) > 15:
+        return redirect(url_for('login'))
+    
+    session['username'] = username
+    session['gender'] = gender
+    session['avatar_url'] = f"https://avatar.iran.liara.run/public/{gender}?username={username}"
+    
+    return redirect(url_for('chat'))
+
+@app.route('/chat')
+def chat():
+    if 'username' not in session:
+        return redirect(url_for('login'))
     return render_template('index.html')
 
 @socketio.on('connect')
-def handel_connect():
-    username = f"User{random.randint(1000,9999)}"
-    gender = random.choice(["girl","boy"])
-    avatar_url = f"https://avatar.iran.liara.run/public/{gender}?username={username}"
+def handle_connect():
+    if 'username' not in session:
+        return False
     
-    users[request.sid] = {"username":username,"avatar_url":avatar_url}
+    username = session['username']
+    avatar_url = session['avatar_url']
+    
+    users[request.sid] = {
+        "username": username,
+        "avatar_url": avatar_url
+    }
     
     # Send existing users to the new user
     existing_users = [{"username": user["username"], "avatar_url": user["avatar_url"]} 
@@ -31,7 +59,7 @@ def handel_connect():
     emit('message_history', message_history)
     
     # Broadcast new user to everyone
-    emit('user_joined',{"username":username,"avatar_url":avatar_url},broadcast=True)
+    emit('user_joined', {"username": username, "avatar_url": avatar_url}, broadcast=True)
     emit("set_username",{"username":username})
 
 @socketio.on("disconnect")
