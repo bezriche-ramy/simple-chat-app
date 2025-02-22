@@ -26,6 +26,7 @@
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             height: 90vh;
+            width: 95%; /* Add this to prevent full width on mobile */
         }
 
         .sidebar {
@@ -161,11 +162,85 @@
             border-radius: 4px;
             margin-top: 5px;
         }
+
+        /* Add these media queries at the end of your style section */
+        @media (max-width: 768px) {
+            .chat-container {
+                grid-template-columns: 1fr;
+                height: 100vh;
+                margin: 0;
+                width: 100%;
+                border-radius: 0;
+            }
+
+            .sidebar {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1000;
+                background: rgba(248, 249, 250, 0.95);
+            }
+
+            .sidebar.active {
+                display: block;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .chat-header {
+                padding: 10px;
+            }
+
+            .chat-header h2 {
+                font-size: 1.2rem;
+            }
+
+            .input-container {
+                padding: 10px;
+            }
+
+            .message-input {
+                padding: 8px;
+            }
+
+            .send-button {
+                padding: 8px 16px;
+            }
+
+            /* Add a menu button for mobile */
+            .menu-button {
+                display: block;
+                padding: 8px 12px;
+                background: #0d6efd;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                margin-right: 10px;
+            }
+
+            .close-sidebar {
+                display: block;
+                position: absolute;
+                right: 10px;
+                top: 10px;
+                padding: 8px;
+                background: #dc3545;
+                color: white;
+                border: none;
+                border-radius: 4px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="chat-container">
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
+            <button class="close-sidebar" id="close-sidebar">×</button>
             <div class="username-container">
                 <h3>Your Username</h3>
                 <input type="text" id="username-input" class="username-input" placeholder="Change username">
@@ -175,6 +250,7 @@
         </div>
         <div class="main-chat">
             <div class="chat-header">
+                <button class="menu-button" id="menu-button">☰</button>
                 <h2>Chat Room</h2>
                 <button class="clear-history-button" id="clear-history-button">Clear History</button>
             </div>
@@ -356,6 +432,28 @@
             socket.emit('send_message', { message: message });
             messageInput.value = '';
         }
+
+        // Add this to your existing JavaScript, before the other code
+        const menuButton = document.getElementById('menu-button');
+        const sidebar = document.getElementById('sidebar');
+        const closeSidebar = document.getElementById('close-sidebar');
+
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.add('active');
+        });
+
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+        });
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('active') && 
+                !sidebar.contains(e.target) && 
+                e.target !== menuButton) {
+                sidebar.classList.remove('active');
+            }
+        });
     </script>
 </body>
 </html>
