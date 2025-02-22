@@ -179,6 +179,8 @@
         const usernameInput = document.getElementById('username-input');
 
         let typingTimeout;
+        let isNearBottom = true;
+        const scrollThreshold = 100;
 
         socket.on('connect', () => {
             console.log('Connected to server');
@@ -269,9 +271,21 @@
         }
 
         function scrollToBottom() {
-            setTimeout(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 100);
+            // Only auto-scroll if we were already near the bottom
+            if (isNearBottom) {
+                setTimeout(() => {
+                    messagesContainer.scrollTo({
+                        top: messagesContainer.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }, 100);
+            }
+        }
+
+        function checkNearBottom() {
+            const container = messagesContainer;
+            const scrollPosition = container.scrollHeight - container.scrollTop - container.clientHeight;
+            isNearBottom = scrollPosition < scrollThreshold;
         }
 
         messageInput.addEventListener('keypress', (e) => {
@@ -290,6 +304,8 @@
         usernameInput.addEventListener('change', () => {
             socket.emit('update_username', { username: usernameInput.value });
         });
+
+        messagesContainer.addEventListener('scroll', checkNearBottom);
 
         function sendMessage() {
             const message = messageInput.value;
