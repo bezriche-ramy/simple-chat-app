@@ -12,7 +12,7 @@ users = {}
 def index():
     return render_template('index.html')
 
-@socketio.on('connect'):
+@socketio.on('connect')
 def handel_connect():
     username = f"User{random.randint(1000,9999)}"
     
@@ -32,6 +32,33 @@ def handle_disconnect():
         user=users.pop(request.sid,None)
         if user:
             emit("user_left",{"username":user["username"]},broadcast=True)
+
+@socketio.on("send_message")
+def handle_send_message(data):
+    user = users.get(request.sid)
+    if user:
+        emit("message",{"username":user["username"],"avatar_url":user["avatar_url"],"message":data["message"]},broadcast=True)
+
+@socketio.on("typing")
+def handle_typing():
+    user = users.get(request.sid)
+    if user:
+        emit("typing",{"username":user["username"]},broadcast=True)
+
+@socketio.on("update_username") 
+def handle_update_username(data):
+    user = users.get(request.sid)
+    if user:
+        old_username = user["username"]
+        user["username"] = data["username"]
+        # Emit to the user who changed their name
+        emit("set_username", {"username": data["username"]})
+        # Broadcast to all users about the name change
+        emit("username_changed", {
+            "old_username": old_username,
+            "new_username": data["username"],
+            "avatar_url": user["avatar_url"]
+        }, broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app)
