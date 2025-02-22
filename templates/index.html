@@ -223,6 +223,20 @@
             addSystemMessage(`${data.old_username} changed their name to ${data.new_username}`);
         });
 
+        socket.on('initialize_users', (users) => {
+            // Clear existing user list
+            userList.innerHTML = '';
+            // Add all existing users
+            users.forEach(user => addUserToList(user));
+        });
+
+        socket.on('message_history', (messages) => {
+            // Clear existing messages
+            messagesContainer.innerHTML = '';
+            // Add all history messages
+            messages.forEach(message => addMessage(message));
+        });
+
         function addUserToList(user) {
             const existingUser = document.querySelector(`[data-username="${user.username}"]`);
             if (!existingUser) {

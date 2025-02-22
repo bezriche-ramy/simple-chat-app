@@ -5,8 +5,10 @@ import random
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-# python store connect yser. key is socket id and value is username
+# Store for users and messages
 users = {}
+message_history = []  # Store recent messages
+MAX_MESSAGES = 50  # Maximum number of messages to store
 
 @app.route('/')
 def index():
@@ -15,15 +17,21 @@ def index():
 @socketio.on('connect')
 def handel_connect():
     username = f"User{random.randint(1000,9999)}"
-    
     gender = random.choice(["girl","boy"])
-    
     avatar_url = f"https://avatar.iran.liara.run/public/{gender}?username={username}"
     
     users[request.sid] = {"username":username,"avatar_url":avatar_url}
     
+    # Send existing users to the new user
+    existing_users = [{"username": user["username"], "avatar_url": user["avatar_url"]} 
+                     for user in users.values()]
+    emit('initialize_users', existing_users)
+    
+    # Send message history to the new user
+    emit('message_history', message_history)
+    
+    # Broadcast new user to everyone
     emit('user_joined',{"username":username,"avatar_url":avatar_url},broadcast=True)
-
     emit("set_username",{"username":username})
 
 @socketio.on("disconnect")
@@ -37,7 +45,17 @@ def handle_disconnect():
 def handle_send_message(data):
     user = users.get(request.sid)
     if user:
-        emit("message",{"username":user["username"],"avatar_url":user["avatar_url"],"message":data["message"]},broadcast=True)
+        message_data = {
+            "username": user["username"],
+            "avatar_url": user["avatar_url"],
+            "message": data["message"]
+        }
+        # Store message in history
+        message_history.append(message_data)
+        # Keep only recent messages
+        if len(message_history) > MAX_MESSAGES:
+            message_history.pop(0)
+        emit("message", message_data, broadcast=True)
 
 @socketio.on("typing")
 def handle_typing():
