@@ -67,16 +67,31 @@
             flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
+            background: #f8f9fa;
+            scroll-behavior: smooth;
         }
 
         .message {
             display: flex;
             align-items: start;
             margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message:nth-child(even) .message-content {
+            background: #e3f2fd;
+        }
+
+        .message:nth-child(odd) .message-content {
+            background: #e8eaf6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message-content {
-            background: #e9ecef;
             padding: 10px 15px;
             border-radius: 15px;
             margin-left: 10px;
@@ -238,7 +253,7 @@
                 </div>
             `;
             messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            scrollToBottom();
         }
 
         function addSystemMessage(text) {
@@ -250,7 +265,13 @@
                 </div>
             `;
             messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
         }
 
         messageInput.addEventListener('keypress', (e) => {
