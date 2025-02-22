@@ -60,7 +60,6 @@ def handle_connect():
     
     # Broadcast new user to everyone
     emit('user_joined', {"username": username, "avatar_url": avatar_url}, broadcast=True)
-    emit("set_username",{"username":username})
 
 @socketio.on("disconnect")
 def handle_disconnect():

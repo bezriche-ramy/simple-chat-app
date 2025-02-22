@@ -267,6 +267,9 @@
         const userList = document.getElementById('user-list');
         const typingIndicator = document.getElementById('typing-indicator');
         const clearHistoryButton = document.getElementById('clear-history-button');
+        const menuButton = document.getElementById('menu-button');
+        const sidebar = document.getElementById('sidebar');
+        const closeSidebar = document.getElementById('close-sidebar');
 
         let typingTimeout;
         let isNearBottom = true;
@@ -274,10 +277,6 @@
 
         socket.on('connect', () => {
             console.log('Connected to server');
-        });
-
-        socket.on('set_username', (data) => {
-            usernameInput.value = data.username;
         });
 
         socket.on('user_joined', (data) => {
@@ -405,19 +404,6 @@
             }
         });
 
-        messagesContainer.addEventListener('scroll', checkNearBottom);
-
-        function sendMessage() {
-            const message = messageInput.value;
-            socket.emit('send_message', { message: message });
-            messageInput.value = '';
-        }
-
-        // Add this to your existing JavaScript, before the other code
-        const menuButton = document.getElementById('menu-button');
-        const sidebar = document.getElementById('sidebar');
-        const closeSidebar = document.getElementById('close-sidebar');
-
         menuButton.addEventListener('click', () => {
             sidebar.classList.add('active');
         });
@@ -434,6 +420,16 @@
                 sidebar.classList.remove('active');
             }
         });
+
+        messagesContainer.addEventListener('scroll', checkNearBottom);
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                socket.emit('send_message', { message: message });
+                messageInput.value = '';
+            }
+        }
     </script>
 </body>
 </html>
